@@ -16,10 +16,22 @@
         overflow: hidden;
         cursor: none;
     }
+    ul {
+        list-style: none;
+    }
 
     </style>
 </head>
 <body>
+    <footer id="footer">
+        <h1>Simple maze in 3D</h1>
+        <p>Use the mouse to look around and move with:</p>
+        <ul>
+            <li>W: forward</li>
+            <li>S: backward</li>
+        </ul>
+        <p>Find the <span id="cube" style="color:#009900">green cube</span> and the <span id="ball" style="color:#FF9722">fire ball</span></p>
+    </footer>
     
     <script src="three.min.js"></script>
     <script src="walls.js"></script>
@@ -93,9 +105,14 @@
         wallTexture.wrapT = THREE.RepeatWrapping;
         wallTexture.needsUpdate = true;
 
+
+
         mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({map : wallTexture,color: 0x009900, wireframe: false}));
-        sphere = new THREE.Mesh(geometrySphere, new THREE.MeshBasicMaterial({color: 0x009900, wireframe: false}));
+        mesh.position.z=-1500;
+
+        sphere = new THREE.Mesh(geometrySphere, new THREE.MeshBasicMaterial({map: new THREE.ImageUtils.loadTexture('textures/fire_texture.jpg')}));
         sphere.position.z = 2000;
+        sphere.position.x = 1000;
 
 
         plane = new THREE.Mesh(geometryPlane, material);
@@ -188,9 +205,9 @@
         
 
         renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight*.75);
         window.camera = camera;
-        document.body.appendChild(renderer.domElement);
+        document.body.insertBefore(renderer.domElement, document.getElementById('footer'));
         document.addEventListener('mousemove', onDocumentMouseMove, false);
         document.addEventListener('keydown', onDocumentKeyDown, false);
 
@@ -216,26 +233,19 @@
             camera.translateZ(-30);
         }
         if(keyCode == 68){
-            camera.translateX(30);
+        //    camera.translateX(30);
         }
         if(keyCode == 83){
             camera.translateZ(30);
         }
         if(keyCode == 65){
-            camera.translateX(-30);
+        //    camera.translateX(-30);
         }
         ray = new THREE.Raycaster(camera.position, center.clone().normalize());
         ray.far=100;
-        var intersects= false;
-        for (var i = wallGeometries.length - 1; i >= 0; i--) {
-            if(ray.intersectObject(wallGeometries[i]).length>0){
-                intersects=true;
-                break;
-            }
-        };
         
-        if(intersects){
-            console.log(intersects);
+        if(ray.intersectObjects(wallGeometries).length>0){
+        
             if(keyCode == 87){
                 camera.translateZ(30);
             }
@@ -251,6 +261,14 @@
         }else{
             angleY+=incrementoY;
             center.y = 400*Math.sin(angleY*80);
+        }
+        if(ray.intersectObject(mesh).length>0){
+            scene.remove(mesh);
+            document.getElementById('cube').setAttribute('style','text-decoration:line-through;color:#007700');
+        }
+        if(ray.intersectObject(sphere).length>0){
+            scene.remove(sphere);
+            document.getElementById('ball').setAttribute('style','text-decoration:line-through;color:#EE8712');
         }
     };
 
